@@ -7,8 +7,10 @@ impl WeatherAPI {
         Self
     }
 
-    pub async fn get_weather(&self, location: &str) -> Result<WeatherInformation, Box<dyn std::error::Error>> {
-        println!("Getting weather for {}", location);
+    pub async fn get_weather(
+        &self,
+        location: &str,
+    ) -> Result<WeatherInformation, Box<dyn std::error::Error>> {
         let id = self.get_location_id(location).await?;
         let weather = self.get_weather_data(id).await?;
         Ok(weather)
@@ -17,18 +19,32 @@ impl WeatherAPI {
     async fn get_location_id(&self, location: &str) -> Result<usize, Box<dyn std::error::Error>> {
         const ENDPOINT: &str = "https://open.live.bbc.co.uk/locator/locations?filter=international&place-types=settlement,airport,district&s={}&format=json&order=importance&a=true";
 
-        let response: WeatherLocationResponse = reqwest::get(ENDPOINT.replace("{}", location)).await?.json().await?;
+        let response: WeatherLocationResponse = reqwest::get(ENDPOINT.replace("{}", location))
+            .await?
+            .json()
+            .await?;
         if response.response.results.total_results == 0 {
-            return Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "No results found")));
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "No results found",
+            )));
         }
 
         let id = response.response.results.results[0].id.parse().unwrap();
         Ok(id)
     }
 
-    async fn get_weather_data(&self, id: usize) -> Result<WeatherInformation, Box<dyn std::error::Error>> {
-        const ENDPOINT: &str = "https://weather-broker-cdn.api.bbci.co.uk/en/forecast/aggregated/{}";
-        let response: WeatherForecastResponse = reqwest::get(ENDPOINT.replace("{}", id.to_string().as_str())).await?.json().await?;
+    async fn get_weather_data(
+        &self,
+        id: usize,
+    ) -> Result<WeatherInformation, Box<dyn std::error::Error>> {
+        const ENDPOINT: &str =
+            "https://weather-broker-cdn.api.bbci.co.uk/en/forecast/aggregated/{}";
+        let response: WeatherForecastResponse =
+            reqwest::get(ENDPOINT.replace("{}", id.to_string().as_str()))
+                .await?
+                .json()
+                .await?;
         Ok(response.into())
     }
 }
@@ -48,7 +64,6 @@ pub(crate) struct WeatherInformation {
     pub sunset: String,
 
     pub precipitation_chance: f64,
-
 }
 
 impl Into<WeatherInformation> for WeatherForecastResponse {
@@ -65,7 +80,7 @@ impl Into<WeatherInformation> for WeatherForecastResponse {
             max_temperature: summary.max_temp_c,
             sunrise: summary.sunrise.clone(),
             sunset: summary.sunset.clone(),
-            precipitation_chance: summary.precipitation_probability_in_percent
+            precipitation_chance: summary.precipitation_probability_in_percent,
         }
     }
 }
@@ -189,7 +204,6 @@ mod tests {
 }
         "#;
 
-
         let result: WeatherLocationResponse = serde_json::from_str(&data).unwrap();
 
         assert_eq!(result.response.results.total_results, 1);
@@ -200,7 +214,6 @@ mod tests {
         assert_eq!(result.response.results.results[0].latitude, 53.30032);
         assert_eq!(result.response.results.results[0].longitude, -3.41262);
     }
-
 
     #[test]
     fn deserialize_weather_location_response() {

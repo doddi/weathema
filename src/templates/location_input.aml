@@ -1,0 +1,4 @@
+border
+  vstack
+    text "Enter the location to lookup"
+    text location

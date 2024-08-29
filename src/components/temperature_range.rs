@@ -6,8 +6,7 @@ struct TemperatureRange;
 
 impl TemperatureRange {
     fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 }
 
@@ -43,16 +42,40 @@ impl Component for TemperatureRange {
     type State = TemperatureRangeState;
     type Message = TemperatureRangeMessage;
 
-    fn message(&mut self, message: Self::Message, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>) {
+    fn message(
+        &mut self,
+        message: Self::Message,
+        state: &mut Self::State,
+        _elements: Elements<'_, '_>,
+        _context: Context<'_, Self::State>,
+    ) {
         state.min_temperature.set(message.min_temperature);
         state.max_temperature.set(message.max_temperature);
     }
 }
 
-pub fn create_component(runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend>) -> ComponentId<TemperatureRangeMessage> {
-    runtime.register_component("temperatureRange", "src/templates/temperature_range.aml", TemperatureRange::new(), TemperatureRangeState::new()).unwrap()
+pub fn create_component(
+    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend>,
+) -> ComponentId<TemperatureRangeMessage> {
+    runtime
+        .register_component(
+            "temperatureRange",
+            "src/templates/temperature_range.aml",
+            TemperatureRange::new(),
+            TemperatureRangeState::new(),
+        )
+        .unwrap()
 }
 
-pub fn update_component(emitter: &Emitter, temp_range_component_id: ComponentId<TemperatureRangeMessage>, temperature_range: (f64, f64)) {
-    emitter.emit(temp_range_component_id, TemperatureRangeMessage::new(temperature_range)).unwrap();
+pub fn update_component(
+    emitter: &Emitter,
+    temp_range_component_id: ComponentId<TemperatureRangeMessage>,
+    temperature_range: (f64, f64),
+) {
+    emitter
+        .emit(
+            temp_range_component_id,
+            TemperatureRangeMessage::new(temperature_range),
+        )
+        .unwrap();
 }

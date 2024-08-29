@@ -1,14 +1,14 @@
 mod client;
 mod components;
 
-use clap::Parser;
-use std::fs::{read_to_string};
-use std::sync::mpsc;
-use rand::Rng;
+use crate::client::{WeatherAPI, WeatherInformation};
 use anathema::component::{Component, State};
 use anathema::prelude::*;
 use anathema::state::Value;
-use crate::client::{WeatherAPI, WeatherInformation};
+use clap::Parser;
+use rand::Rng;
+use std::fs::read_to_string;
+use std::sync::mpsc;
 
 #[derive(Parser)]
 struct Args {
@@ -48,6 +48,8 @@ async fn main() {
 
     let weather_image_component_id = components::weather_image::create_component(&mut runtime);
     let temperature_range_id = components::temperature_range::create_component(&mut runtime);
+    let wind_direction_id = components::wind_direction::create_component(&mut runtime);
+    let _location_input_id = components::location_input::create_component(&mut runtime);
 
     let (tx, rx) = mpsc::channel::<WeatherInformation>();
 
@@ -59,8 +61,24 @@ async fn main() {
 
     tokio::spawn(async move {
         while let Ok(weather_update) = rx.recv() {
-            components::temperature_range::update_component(&emitter, temperature_range_id, (weather_update.min_temperature, weather_update.max_temperature));
-            components::weather_image::update_weather_image_component(&emitter, weather_image_component_id, weather_update.weather_type);
+            components::temperature_range::update_component(
+                &emitter,
+                temperature_range_id,
+                (
+                    weather_update.min_temperature,
+                    weather_update.max_temperature,
+                ),
+            );
+            components::weather_image::update_component(
+                &emitter,
+                weather_image_component_id,
+                weather_update.weather_type,
+            );
+            components::wind_direction::update_component(
+                &emitter,
+                wind_direction_id,
+                weather_update.wind_direction,
+            );
         }
     });
 
@@ -69,7 +87,6 @@ async fn main() {
 }
 
 async fn poll_backend_service(tx: mpsc::Sender<WeatherInformation>, location: &str) {
-
     // TODO: Update this loop to wait for receipt of a message from the main thread
     loop {
         let weather_api = WeatherAPI::new();

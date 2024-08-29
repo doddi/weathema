@@ -1,4 +1,8 @@
 border
     container
-        @temperatureRange
-        //@weatherImage
+      hstack
+        @weatherImage
+        vstack
+          @locationInput
+          @temperatureRange
+          @windDirection
