@@ -53,9 +53,9 @@ impl Component for WeatherImage {
 
 #[derive(Clone, Copy, Debug)]
 enum WeatherType {
-    Unknown,
-    Sunny,
-    PartlyCloudy,
+    Unknown = -1,
+    Sunny = 1,
+    PartlyCloudy = 3,
     Cloudy,
     Rainy,
     Snowy,
@@ -95,9 +95,9 @@ async fn main() {
     let doc = Document::new(template);
 
     let backend = TuiBackend::builder()
-        // .enable_alt_screen()
-        // .enable_raw_mode()
-        // .hide_cursor()
+        .enable_alt_screen()
+        .enable_raw_mode()
+        .hide_cursor()
         .finish()
         .unwrap();
 
@@ -107,7 +107,7 @@ async fn main() {
                                             WeatherImage::new(), WeatherImageState::new()).unwrap();
 
 
-    let (tx, rx) = mpsc::channel::<WeatherType>();
+    let (tx, rx) = mpsc::channel::<WeatherInformation>();
 
     tokio::spawn(async move {
         poll_backend_service(tx).await;
@@ -117,6 +117,16 @@ async fn main() {
 
     tokio::spawn(async move {
         while let Ok(weather_update) = rx.recv() {
+            println!("Received weather information {:?}", weather_update);
+
+            let weather_update = match weather_update.weather_type {
+                0..=1 => WeatherType::Sunny,
+                2..=4 => WeatherType::PartlyCloudy,
+                5..=8 => WeatherType::Cloudy,
+                9..=12 => WeatherType::Rainy,
+                20 => WeatherType::Snowy, // TODO
+                _ => WeatherType::Unknown,
+            };
             emitter.emit(weather_image_component, WeatherImageMessage::new(weather_update)).unwrap();
         }
     });
@@ -125,25 +135,15 @@ async fn main() {
     runtime.run();
 }
 
-async fn poll_backend_service(mut tx: mpsc::Sender<WeatherType>) {
+async fn poll_backend_service(mut tx: mpsc::Sender<WeatherInformation>) {
     loop {
         let weather_api = WeatherAPI::new();
 
-        match weather_api.get_weather("Dyserth").await {
+        match weather_api.get_weather("London").await {
             Ok(information) => {
-                println!("Received weather information {:?}", information);
-
-                let weather_update = match information.weather_type {
-                    1 => WeatherType::Sunny,
-                    2 => WeatherType::PartlyCloudy,
-                    3 => WeatherType::Cloudy,
-                    4 => WeatherType::Rainy,
-                    5 => WeatherType::Snowy,
-                    _ => WeatherType::Unknown,
-                };
 
                 // Send the weather update to the main thread
-                if tx.send(weather_update).is_err() {
+                if tx.send(information).is_err() {
                     println!("Receiver dropped");
                     return;
                 }

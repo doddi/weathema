@@ -35,10 +35,20 @@ impl WeatherAPI {
 
 #[derive(Debug)]
 pub(crate) struct WeatherInformation {
-    wind_speed: f64,
-    wind_direction: String,
-    weather: String,
-    pub(crate) weather_type: u8,
+    pub wind_speed: f64,
+    pub wind_direction: String,
+
+    pub min_temperature: f64,
+    pub max_temperature: f64,
+
+    pub weather: String,
+    pub weather_type: u8,
+
+    pub sunrise: String,
+    pub sunset: String,
+
+    pub precipitation_chance: f64,
+
 }
 
 impl Into<WeatherInformation> for WeatherForecastResponse {
@@ -51,6 +61,11 @@ impl Into<WeatherInformation> for WeatherForecastResponse {
             wind_direction: summary.wind_direction.clone(),
             weather: summary.weather_type_text.clone().into(),
             weather_type: summary.weather_type,
+            min_temperature: summary.min_temp_c,
+            max_temperature: summary.max_temp_c,
+            sunrise: summary.sunrise.clone(),
+            sunset: summary.sunset.clone(),
+            precipitation_chance: summary.precipitation_probability_in_percent
         }
     }
 }
@@ -97,6 +112,10 @@ struct WeatherSummaryForecast {
 struct WeatherSummaryReport {
     sunrise: String,
     sunset: String,
+    #[serde(rename = "maxTempC")]
+    max_temp_c: f64,
+    #[serde(rename = "minTempC")]
+    min_temp_c: f64,
     #[serde(rename = "windSpeedKph")]
     wind_speed_kph: f64,
     #[serde(rename = "windDirection")]
@@ -105,6 +124,9 @@ struct WeatherSummaryReport {
     weather_type: u8,
     #[serde(rename = "weatherTypeText")]
     weather_type_text: String,
+
+    #[serde(rename = "precipitationProbabilityInPercent")]
+    precipitation_probability_in_percent: f64,
 }
 
 ////////////// Location API //////////////
