@@ -1,5 +1,6 @@
 mod client;
 
+use clap::Parser;
 use std::error::Error;
 use std::fs::{read_to_string};
 use std::sync::mpsc;
@@ -9,6 +10,11 @@ use anathema::prelude::*;
 use anathema::state::Value;
 use rand::distr::{Distribution, Standard};
 use crate::client::{WeatherAPI, WeatherInformation};
+
+#[derive(Parser)]
+struct Args {
+    location: String,
+}
 
 struct WeatherImage;
 
@@ -34,20 +40,20 @@ impl Component for WeatherImage {
     type State = WeatherImageState;
     type Message = WeatherImageMessage;
 
-    fn message(&mut self, message: Self::Message, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_>) {
-        match message {
-            WeatherImageMessage { weather_type } => {
-                state.weather_image.set(match weather_type {
-                    WeatherType::Sunny => read_to_string("src/images/sunny.txt").unwrap(),
-                    WeatherType::PartlyCloudy => read_to_string("src/images/partly-cloudy.txt").unwrap(),
-                    WeatherType::Cloudy => read_to_string("src/images/cloudy.txt").unwrap(),
-                    WeatherType::Rainy => read_to_string("src/images/rainy.txt").unwrap(),
-                    WeatherType::Snowy => read_to_string("src/images/snowy.txt").unwrap(),
-                    WeatherType::Stormy => read_to_string("src/images/stormy.txt").unwrap(),
-                    _ => read_to_string("src/images/unknown.txt").unwrap(),
-                });
+    fn message(&mut self, message: Self::Message, state: &mut Self::State, elements: Elements<'_, '_>, context: Context<'_, Self::State>) {
+            match message {
+                WeatherImageMessage { weather_type } => {
+                    state.weather_image.set(match weather_type {
+                        WeatherType::Sunny => read_to_string("src/images/sunny.txt").unwrap(),
+                        WeatherType::PartlyCloudy => read_to_string("src/images/partly-cloudy.txt").unwrap(),
+                        WeatherType::Cloudy => read_to_string("src/images/cloudy.txt").unwrap(),
+                        WeatherType::Rainy => read_to_string("src/images/rainy.txt").unwrap(),
+                        WeatherType::Snowy => read_to_string("src/images/snowy.txt").unwrap(),
+                        WeatherType::Stormy => read_to_string("src/images/stormy.txt").unwrap(),
+                        _ => read_to_string("src/images/unknown.txt").unwrap(),
+                    });
+                }
             }
-        }
     }
 }
 
@@ -90,6 +96,9 @@ impl WeatherImageState {
 
 #[tokio::main]
 async fn main() {
+    let args = Args::parse();
+    let location = args.location;
+
     let template = read_to_string("src/templates/index.aml").unwrap();
 
     let doc = Document::new(template);
@@ -110,7 +119,7 @@ async fn main() {
     let (tx, rx) = mpsc::channel::<WeatherInformation>();
 
     tokio::spawn(async move {
-        poll_backend_service(tx).await;
+        poll_backend_service(tx, location.as_str()).await;
     });
 
     let emitter = runtime.emitter();
@@ -135,11 +144,11 @@ async fn main() {
     runtime.run();
 }
 
-async fn poll_backend_service(mut tx: mpsc::Sender<WeatherInformation>) {
+async fn poll_backend_service(mut tx: mpsc::Sender<WeatherInformation>, location: &str) {
     loop {
         let weather_api = WeatherAPI::new();
 
-        match weather_api.get_weather("London").await {
+        match weather_api.get_weather(location).await {
             Ok(information) => {
 
                 // Send the weather update to the main thread
