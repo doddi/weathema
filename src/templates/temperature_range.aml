@@ -1,0 +1,4 @@
+border
+  vstack
+    text "Min: " min_temperature
+    text "Max: " max_temperature
