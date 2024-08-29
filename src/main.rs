@@ -2,17 +2,17 @@ mod client;
 mod components;
 
 use crate::client::{WeatherAPI, WeatherInformation};
-use anathema::component::{Component, State};
+use anathema::component::State;
 use anathema::prelude::*;
 use anathema::state::Value;
 use clap::Parser;
-use rand::Rng;
 use std::fs::read_to_string;
 use std::sync::mpsc;
+use std::sync::mpsc::{Sender, TryRecvError};
 
 #[derive(Parser)]
 struct Args {
-    location: String,
+    location: Option<String>,
 }
 
 #[derive(State)]
@@ -46,15 +46,17 @@ async fn main() {
 
     let mut runtime = Runtime::builder(doc, backend);
 
+    let (tx_input, rx_input) = mpsc::channel::<String>();
+
     let weather_image_component_id = components::weather_image::create_component(&mut runtime);
     let temperature_range_id = components::temperature_range::create_component(&mut runtime);
     let wind_direction_id = components::wind_direction::create_component(&mut runtime);
-    let _location_input_id = components::location_input::create_component(&mut runtime);
+    let _location_input_id = components::location_input::create_component(&mut runtime, tx_input, &location);
 
     let (tx, rx) = mpsc::channel::<WeatherInformation>();
 
     tokio::spawn(async move {
-        poll_backend_service(tx, location.as_str()).await;
+        poll_backend_service(tx, rx_input, &location).await;
     });
 
     let emitter = runtime.emitter();
@@ -86,22 +88,47 @@ async fn main() {
     runtime.run();
 }
 
-async fn poll_backend_service(tx: mpsc::Sender<WeatherInformation>, location: &str) {
-    // TODO: Update this loop to wait for receipt of a message from the main thread
-    loop {
-        let weather_api = WeatherAPI::new();
+async fn poll_backend_service(
+    tx: Sender<WeatherInformation>,
+    rx_input: mpsc::Receiver<String>,
+    initial_location: &Option<String>) {
 
-        match weather_api.get_weather(location).await {
-            Ok(information) => {
-                // Send the weather update to the main thread
-                if tx.send(information).is_err() {
-                    println!("Receiver dropped");
-                    return;
-                }
-            }
-            Err(err) => eprintln!("Error: {}", err),
-        }
+    let weather_api = WeatherAPI::new();
 
-        tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
+    if let Some(location) = initial_location {
+        if !get_weather(&tx, &weather_api, location).await { return; }
     }
+
+    loop {
+        match rx_input.try_recv() {
+            Ok(entered_location) => {
+                if !get_weather(&tx, &weather_api, &entered_location).await { return; }
+            }
+            Err(err) => {
+                match err {
+                    TryRecvError::Empty => {
+                        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                    }
+                    TryRecvError::Disconnected => {
+                        eprintln!("Disconnected Error: {}", err);
+                        return;
+                    }
+                }
+            },
+        }
+    }
+}
+
+async fn get_weather(tx: &Sender<WeatherInformation>, weather_api: &WeatherAPI, entered_location: &str) -> bool {
+    match weather_api.get_weather(entered_location).await {
+        Ok(information) => {
+            // Send the weather update to the main thread
+            if tx.send(information).is_err() {
+                println!("Receiver dropped");
+                return false;
+            }
+        }
+        Err(err) => eprintln!("Error: {}", err),
+    }
+    true
 }

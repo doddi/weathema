@@ -49,6 +49,7 @@ impl WeatherAPI {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub(crate) struct WeatherInformation {
     pub wind_speed: f64,
@@ -66,15 +67,15 @@ pub(crate) struct WeatherInformation {
     pub precipitation_chance: f64,
 }
 
-impl Into<WeatherInformation> for WeatherForecastResponse {
-    fn into(self) -> WeatherInformation {
-        let forecast = &self.forecasts[0];
+impl From<WeatherForecastResponse> for WeatherInformation {
+    fn from(response: WeatherForecastResponse) -> Self {
+        let forecast = &response.forecasts[0];
         let summary = &forecast.summary.report;
 
         WeatherInformation {
             wind_speed: summary.wind_speed_kph,
             wind_direction: summary.wind_direction.clone(),
-            weather: summary.weather_type_text.clone().into(),
+            weather: summary.weather_type_text.clone(),
             weather_type: summary.weather_type,
             min_temperature: summary.min_temp_c,
             max_temperature: summary.max_temp_c,
@@ -91,12 +92,14 @@ struct WeatherForecastResponse {
     forecasts: Vec<WeatherForecast>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct WeatherForecast {
     detailed: WeatherDetailedForecast,
     summary: WeatherSummaryForecast,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct WeatherDetailedForecast {
     #[serde(rename = "issueDate")]
@@ -106,6 +109,7 @@ struct WeatherDetailedForecast {
     reports: Vec<WeatherDetailedReport>,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct WeatherDetailedReport {
     #[serde(rename = "weatherType")]
@@ -114,6 +118,7 @@ struct WeatherDetailedReport {
     weather_type_text: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct WeatherSummaryForecast {
     #[serde(rename = "issueDate")]
@@ -162,6 +167,7 @@ struct WeatherLocationResults {
     total_results: u32,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct WeatherLocationResult {
     id: String,

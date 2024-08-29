@@ -1,4 +1,4 @@
-border
+border [ border_style: has_focus ]
   vstack
     text "Enter the location to lookup"
     text location

@@ -5,6 +5,7 @@ use anathema::state::State;
 #[derive(Default)]
 struct WindDirectionComponent;
 
+#[allow(dead_code)]
 enum WindDirection {
     North,
     NorthEast,
@@ -71,7 +72,7 @@ pub fn create_component(
         .register_component(
             "windDirection",
             "src/templates/wind_direction.aml",
-            WindDirectionComponent::default(),
+            WindDirectionComponent,
             WindDirectionState::new(),
         )
         .unwrap()

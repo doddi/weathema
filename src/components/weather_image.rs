@@ -29,7 +29,7 @@ impl Component for WeatherImage {
         &mut self,
         message: Self::Message,
         state: &mut Self::State,
-        elements: Elements<'_, '_>,
+        _elements: Elements<'_, '_>,
         _context: Context<'_, Self::State>,
     ) {
         // TODO: Consider preloading the images and storing them in the state
@@ -50,6 +50,7 @@ impl Component for WeatherImage {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, Debug)]
 enum WeatherType {
     Unknown = -1,
