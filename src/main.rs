@@ -1,7 +1,7 @@
 mod client;
 mod components;
 
-use crate::client::{WeatherAPI, WeatherInformation};
+use crate::client::{WeatherAPI, WeatherForecastResponse};
 use anathema::component::State;
 use anathema::prelude::*;
 use anathema::state::Value;
@@ -53,7 +53,7 @@ async fn main() {
     let wind_direction_id = components::wind_direction::create_component(&mut runtime);
     let _location_input_id = components::location_input::create_component(&mut runtime, tx_input, &location);
 
-    let (tx, rx) = mpsc::channel::<WeatherInformation>();
+    let (tx, rx) = mpsc::channel::<WeatherForecastResponse>();
 
     tokio::spawn(async move {
         poll_backend_service(tx, rx_input, &location).await;
@@ -67,19 +67,19 @@ async fn main() {
                 &emitter,
                 temperature_range_id,
                 (
-                    weather_update.min_temperature,
-                    weather_update.max_temperature,
+                    weather_update.forecasts[0].summary.report.min_temp_c,
+                    weather_update.forecasts[0].summary.report.max_temp_c,
                 ),
             );
             components::weather_image::update_component(
                 &emitter,
                 weather_image_component_id,
-                weather_update.weather_type,
+                weather_update.forecasts[0].summary.report.weather_type,
             );
             components::wind_direction::update_component(
                 &emitter,
                 wind_direction_id,
-                weather_update.wind_direction,
+                weather_update.forecasts[0].summary.report.wind_direction.clone(),
             );
         }
     });
@@ -89,7 +89,7 @@ async fn main() {
 }
 
 async fn poll_backend_service(
-    tx: Sender<WeatherInformation>,
+    tx: Sender<WeatherForecastResponse>,
     rx_input: mpsc::Receiver<String>,
     initial_location: &Option<String>) {
 
@@ -119,7 +119,7 @@ async fn poll_backend_service(
     }
 }
 
-async fn get_weather(tx: &Sender<WeatherInformation>, weather_api: &WeatherAPI, entered_location: &str) -> bool {
+async fn get_weather(tx: &Sender<WeatherForecastResponse>, weather_api: &WeatherAPI, entered_location: &str) -> bool {
     match weather_api.get_weather(entered_location).await {
         Ok(information) => {
             // Send the weather update to the main thread

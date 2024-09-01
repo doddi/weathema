@@ -10,10 +10,10 @@ impl WeatherAPI {
     pub async fn get_weather(
         &self,
         location: &str,
-    ) -> Result<WeatherInformation, Box<dyn std::error::Error>> {
+    ) -> Result<WeatherForecastResponse, Box<dyn std::error::Error>> {
         let id = self.get_location_id(location).await?;
-        let weather = self.get_weather_data(id).await?;
-        Ok(weather)
+        let response = self.get_weather_data(id).await?;
+        Ok(response)
     }
 
     async fn get_location_id(&self, location: &str) -> Result<usize, Box<dyn std::error::Error>> {
@@ -37,7 +37,7 @@ impl WeatherAPI {
     async fn get_weather_data(
         &self,
         id: usize,
-    ) -> Result<WeatherInformation, Box<dyn std::error::Error>> {
+    ) -> Result<WeatherForecastResponse, Box<dyn std::error::Error>> {
         const ENDPOINT: &str =
             "https://weather-broker-cdn.api.bbci.co.uk/en/forecast/aggregated/{}";
         let response: WeatherForecastResponse =
@@ -45,137 +45,101 @@ impl WeatherAPI {
                 .await?
                 .json()
                 .await?;
-        Ok(response.into())
-    }
-}
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub(crate) struct WeatherInformation {
-    pub wind_speed: f64,
-    pub wind_direction: String,
-
-    pub min_temperature: f64,
-    pub max_temperature: f64,
-
-    pub weather: String,
-    pub weather_type: u8,
-
-    pub sunrise: String,
-    pub sunset: String,
-
-    pub precipitation_chance: f64,
-}
-
-impl From<WeatherForecastResponse> for WeatherInformation {
-    fn from(response: WeatherForecastResponse) -> Self {
-        let forecast = &response.forecasts[0];
-        let summary = &forecast.summary.report;
-
-        WeatherInformation {
-            wind_speed: summary.wind_speed_kph,
-            wind_direction: summary.wind_direction.clone(),
-            weather: summary.weather_type_text.clone(),
-            weather_type: summary.weather_type,
-            min_temperature: summary.min_temp_c,
-            max_temperature: summary.max_temp_c,
-            sunrise: summary.sunrise.clone(),
-            sunset: summary.sunset.clone(),
-            precipitation_chance: summary.precipitation_probability_in_percent,
-        }
+        Ok(response)
     }
 }
 
 ////////////// Weather API //////////////
 #[derive(Debug, Deserialize)]
-struct WeatherForecastResponse {
-    forecasts: Vec<WeatherForecast>,
+pub(crate) struct WeatherForecastResponse {
+    pub forecasts: Vec<WeatherForecast>,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
-struct WeatherForecast {
-    detailed: WeatherDetailedForecast,
-    summary: WeatherSummaryForecast,
+pub(crate) struct WeatherForecast {
+    pub detailed: WeatherDetailedForecast,
+    pub summary: WeatherSummaryForecast,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
-struct WeatherDetailedForecast {
+pub(crate) struct WeatherDetailedForecast {
     #[serde(rename = "issueDate")]
-    issue_date: String,
+    pub issue_date: String,
     #[serde(rename = "lastUpdated")]
-    last_updated: String,
-    reports: Vec<WeatherDetailedReport>,
+    pub last_updated: String,
+    pub reports: Vec<WeatherDetailedReport>,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
-struct WeatherDetailedReport {
+pub(crate) struct WeatherDetailedReport {
     #[serde(rename = "weatherType")]
-    weather_type: u8,
+    pub weather_type: u8,
     #[serde(rename = "weatherTypeText")]
-    weather_type_text: String,
+    pub weather_type_text: String,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
-struct WeatherSummaryForecast {
+pub(crate) struct WeatherSummaryForecast {
     #[serde(rename = "issueDate")]
-    issue_date: String,
+    pub issue_date: String,
     #[serde(rename = "lastUpdated")]
-    last_updated: String,
-    report: WeatherSummaryReport,
+    pub last_updated: String,
+    pub report: WeatherSummaryReport,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
-struct WeatherSummaryReport {
-    sunrise: String,
-    sunset: String,
+pub(crate) struct WeatherSummaryReport {
+    pub sunrise: String,
+    pub sunset: String,
     #[serde(rename = "maxTempC")]
-    max_temp_c: f64,
+    pub max_temp_c: f64,
     #[serde(rename = "minTempC")]
-    min_temp_c: f64,
+    pub min_temp_c: f64,
     #[serde(rename = "windSpeedKph")]
-    wind_speed_kph: f64,
+    pub wind_speed_kph: f64,
     #[serde(rename = "windDirection")]
-    wind_direction: String,
+    pub wind_direction: String,
     #[serde(rename = "weatherType")]
-    weather_type: u8,
+    pub weather_type: u8,
     #[serde(rename = "weatherTypeText")]
-    weather_type_text: String,
+    pub weather_type_text: String,
 
     #[serde(rename = "precipitationProbabilityInPercent")]
-    precipitation_probability_in_percent: f64,
+    pub precipitation_probability_in_percent: f64,
 }
 
 ////////////// Location API //////////////
 #[derive(Debug, Deserialize)]
-struct WeatherLocationResponse {
-    response: WeatherLocationWrappedResults,
+pub(crate) struct WeatherLocationResponse {
+    pub response: WeatherLocationWrappedResults,
 }
 
 #[derive(Debug, Deserialize)]
-struct WeatherLocationWrappedResults {
-    results: WeatherLocationResults,
+pub(crate) struct WeatherLocationWrappedResults {
+    pub results: WeatherLocationResults,
 }
 
 #[derive(Debug, Deserialize)]
-struct WeatherLocationResults {
-    results: Vec<WeatherLocationResult>,
+pub(crate) struct WeatherLocationResults {
+    pub results: Vec<WeatherLocationResult>,
     #[serde(rename = "totalResults")]
-    total_results: u32,
+    pub total_results: u32,
 }
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
-struct WeatherLocationResult {
-    id: String,
-    name: String,
-    container: String,
-    country: String,
-    latitude: f64,
-    longitude: f64,
+pub(crate) struct WeatherLocationResult {
+    pub id: String,
+    pub name: String,
+    pub container: String,
+    pub country: String,
+    pub latitude: f64,
+    pub longitude: f64,
 }
 
 #[cfg(test)]
