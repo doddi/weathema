@@ -1,0 +1,4 @@
+border
+ hstack
+   @mainHolding
+   @weatherDisplay

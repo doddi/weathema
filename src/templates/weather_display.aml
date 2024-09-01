@@ -1,13 +1,6 @@
-border
-  if is_loading
-    hstack
-      spacer
-      align [alignment: "center"]
-        text "Enter location"
-      spacer
-  else
-    hstack
-      vstack
-        @temperatureRange
-        @windDirection
-      @weatherImage
+if is_loading == false
+  hstack
+    vstack
+      @temperatureRange
+      @windDirection
+    @weatherImage

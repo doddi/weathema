@@ -1,5 +1,5 @@
 vstack
   @header
   expand
-    @weatherDisplay
+    @main
   @footer
