@@ -1,6 +1,7 @@
 if is_loading == false
-  hstack
+  hstack [foreground: "white"]
     vstack
       @temperatureRange
       @windDirection
+    spacer
     @weatherImage
