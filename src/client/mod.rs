@@ -49,6 +49,12 @@ impl WeatherAPI {
     }
 }
 
+pub(crate) enum WeathemaComponentMessaging {
+    ForecastWaiting,
+    ForecastReceived(WeatherForecastResponse),
+    ForecastError(String),
+}
+
 ////////////// Weather API //////////////
 #[derive(Debug, Deserialize)]
 pub(crate) struct WeatherForecastResponse {

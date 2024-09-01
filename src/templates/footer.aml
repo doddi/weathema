@@ -1,0 +1,5 @@
+border [foreground: "blue", min_height: 1]
+  hstack
+    @spinner
+    spacer
+    text [foreground: "yellow"] "Written by doddi"

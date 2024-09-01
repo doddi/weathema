@@ -1,8 +1,5 @@
-border
-    container
-      hstack
-        vstack
-          @locationInput
-          @temperatureRange
-          @windDirection
-        @weatherImage
+vstack
+  @header
+  expand
+    @weatherDisplay
+  @footer

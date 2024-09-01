@@ -1,4 +1,7 @@
-border [ border_style: has_focus ]
-  vstack
-    text "Enter the location to lookup"
-    text location
+hstack
+  if has_focus
+    text [foreground: "green"] "Enter the location to lookup: "
+    text [foreground: "green"] location
+  else
+    text [foreground: "red"] "Enter the location to lookup: "
+    text [foreground: "red"] location

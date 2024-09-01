@@ -1,0 +1,7 @@
+  border [foreground: "blue"]
+    hstack
+      @locationInput
+      spacer
+      text "Weathema"
+      spacer
+      text [foreground: "yellow"] "Created using Anathema"

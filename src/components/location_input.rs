@@ -19,14 +19,14 @@ impl LocationInputComponent {
 #[derive(State)]
 struct LocationInputState {
     location: Value<String>,
-    has_focus: Value<String>,
+    has_focus: Value<bool>,
 }
 
 impl LocationInputState {
     fn new(location: String) -> Self {
         Self {
             location: Value::new(location),
-            has_focus: Value::new("thin".into()),
+            has_focus: Value::new(false),
         }
     }
 }
@@ -36,11 +36,11 @@ impl Component for LocationInputComponent {
     type Message = ();
 
     fn on_blur(&mut self, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>) {
-        state.has_focus.set("thin".into());
+        state.has_focus.set(false);
     }
 
     fn on_focus(&mut self, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>) {
-       state.has_focus.set("thick".into());
+       state.has_focus.set(true);
     }
 
     fn on_key(&mut self, key: KeyEvent, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>) {
@@ -48,7 +48,6 @@ impl Component for LocationInputComponent {
             KeyEvent { code: KeyCode::Enter, state: KeyState::Press, ..} => {
                 let location = state.location.to_ref().clone();
                 let _ = self.tx_input.send(location);
-                state.location.set("".into());
             }
             KeyEvent { code: KeyCode::Char(c), state: KeyState::Press, .. } => {
                 state.location.to_mut().push(c);
