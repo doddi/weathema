@@ -4,13 +4,10 @@ use anathema::geometry::LocalPos;
 use anathema::prelude::*;
 use anathema::runtime::RuntimeBuilder;
 
-struct GraphComponent {}
+#[derive(Default)]
+struct GraphComponent;
 
 impl GraphComponent {
-    fn new() -> Self {
-        Self {}
-    }
-
     fn populate_graph(&mut self, canvas: &mut Canvas, point_width: u16, data_points: &Vec<u16>, max: &u16, mut style: &CanvasAttribs) {
         for (pt_idx, value) in data_points.iter().enumerate() {
             let y = max - *value;
@@ -40,8 +37,8 @@ impl Component for GraphComponent {
         let min = if range1.0 > range2.0 { range2.0 } else { range1.0 };
         let max = if range1.1 > range2.1 { range1.1 } else { range2.1 };
 
-        state.maxtemp.set(max);
-        state.mintemp.set(min);
+        state.max_temp.set(max);
+        state.min_temp.set(min);
 
         let range = if max - min < 10 {
             10
@@ -52,10 +49,10 @@ impl Component for GraphComponent {
 
         let point_width = state.point_width.to_ref();
         let width = if (message.max_temp_points.len()) < 10 {
-            10 * *point_width
+            10
         } else {
-            message.max_temp_points.len() as u16 * *point_width
-        };
+            message.max_temp_points.len() as u16
+        } * *point_width;
         state.width.set(width);
 
         // Populate max temps in the forecast
@@ -79,8 +76,8 @@ impl Component for GraphComponent {
 #[derive(State)]
 struct GraphComponentState {
     title: Value<String>,
-    maxtemp: Value<u16>,
-    mintemp: Value<u16>,
+    max_temp: Value<u16>,
+    min_temp: Value<u16>,
 
     point_width: Value<u16>,
 
@@ -95,10 +92,10 @@ impl GraphComponentState {
         let data_points = List::from_iter(vec![]);
         Self {
             title: Value::new("Graph".to_string()),
-            maxtemp: Value::new(0),
-            mintemp: Value::new(0),
+            max_temp: Value::new(0),
+            min_temp: Value::new(0),
 
-            point_width: Value::new(2),
+            point_width: Value::new(3),
             height: Value::new(10),
             width: Value::new(10),
             data_points,
@@ -118,7 +115,7 @@ pub fn create_component(
         .register_component(
             "graphComponent",
             "src/templates/graph_component.aml",
-            GraphComponent::new(),
+            GraphComponent::default(),
             GraphComponentState::new(),
         )
         .unwrap()
