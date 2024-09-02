@@ -1,2 +1,2 @@
-border [foreground: "blue"]
+border [foreground: THEME.border_foreground]
   text [foreground: "white"] weather_image

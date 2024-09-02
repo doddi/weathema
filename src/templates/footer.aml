@@ -1,4 +1,4 @@
-border [foreground: "blue", min_height: 1]
+border [foreground: THEME.border_foreground, min_height: 1]
   hstack
     @spinner
     spacer

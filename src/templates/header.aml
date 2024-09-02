@@ -1,4 +1,4 @@
-  border [foreground: "blue"]
+  border [foreground: THEME.border_foreground]
     hstack
       @locationInput
       spacer

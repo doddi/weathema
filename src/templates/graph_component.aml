@@ -1,4 +1,4 @@
-border [foreground: "blue"]
+border [foreground: THEME.border_foreground]
   vstack [foreground: "white"]
     text title
     text [foreground: "red"] "Max: " maxtemp
