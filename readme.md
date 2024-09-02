@@ -18,3 +18,8 @@ cargo run <city>
 Ctrl-C to exit the app.
 
 ![usage.gif](docs/usage.gif)
+
+### Issues
+- Point width on the temperature graph does not have an affect despite specifying it in the `Graph` aml.
+- Aligning the min and max temperature values on the graph is a bit off. See graph_component.aml comments
+- When any values are changed on the graph_component.aml file the datapoints are lost on the temperature graph
