@@ -1,1 +1,2 @@
-text weather_image
+border [foreground: "blue"]
+  text [foreground: "white"] weather_image

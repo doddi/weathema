@@ -1,3 +1,7 @@
+let THEME = {
+  border_foreground: "blue",
+}
+
 vstack
   @header
   expand

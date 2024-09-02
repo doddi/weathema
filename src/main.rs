@@ -56,6 +56,7 @@ async fn main() {
     let weather_image_component_id = components::weather_image::create_component(&mut runtime);
     let temperature_range_id = components::temperature_range::create_component(&mut runtime);
     let wind_direction_id = components::wind_direction::create_component(&mut runtime);
+    let graph_component_id = components::graph_component::create_component(&mut runtime);
     let _location_input_id = components::location_input::create_component(&mut runtime, tx_input, &location);
 
     let (tx, rx) = mpsc::channel::<WeathemaComponentMessaging>();
@@ -100,6 +101,12 @@ async fn main() {
                     components::weather_display::update_component(&emitter, weather_display_id, false);
                     components::spinner::update_component(&emitter, spinner_id, false);
                     components::main_holding::update_component(&emitter, main_holding_id, false, "Loaded".to_string());
+                    components::graph_component::update_component(
+                        &emitter,
+                        graph_component_id,
+                        weather_update.forecasts.iter().map(|forecast| forecast.summary.report.max_temp_c as u16).collect(),
+                        weather_update.forecasts.iter().map(|forecast| forecast.summary.report.min_temp_c as u16).collect(),
+                    );
                 }
                 WeathemaComponentMessaging::ForecastError(reason) => {
                     components::spinner::update_component(&emitter, spinner_id, false);

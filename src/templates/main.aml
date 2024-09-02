@@ -1,4 +1,3 @@
-border [foreground: "blue"]
- hstack
-   @mainHolding
-   @weatherDisplay
+hstack
+  @mainHolding
+  @weatherDisplay

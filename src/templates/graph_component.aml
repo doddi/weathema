@@ -1,0 +1,14 @@
+border [foreground: "blue"]
+  vstack [foreground: "white"]
+    text title
+    text [foreground: "red"] "Max: " maxtemp
+    canvas [width: width, height: height]
+    text [foreground: "blue"] "Min: " mintemp
+
+//border [foreground: "blue"]
+//  vstack [foreground: "white"]
+//    text title
+//    align [alignment: "center"]
+//      text [foreground: "red"] "Max: " maxtemp
+//    canvas [width: width, height: height]
+//    text [foreground: "blue"] "Min: " mintemp
