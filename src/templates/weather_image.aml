@@ -1,2 +1,4 @@
 border [foreground: THEME.border_foreground]
-  text [foreground: "white"] weather_image
+  container
+    expand [axis: "vert"]
+      text [foreground: "white"] weather_image

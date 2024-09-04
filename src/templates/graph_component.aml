@@ -1,12 +1,13 @@
 border [width: width + 2, foreground: THEME.border_foreground]
-  vstack [foreground: "white"]
-    container [height: 1]
-      align [alignment: "center"]
-        text title
-    container [height: 1]
-      align [alignment: "center"]
-        text [foreground: "red"] "Max: " max_temp
-    canvas [height: height]
-    container [height: 1]
-      align [alignment: "center"]
-        text [foreground: "blue"] "Min: " min_temp
+  expand
+    vstack [foreground: "white"]
+      container [height: 1]
+        align [alignment: "center"]
+          text title
+      container [height: 1]
+        align [alignment: "center"]
+          text [foreground: "red"] "Max: " max_temp
+      canvas [height: height]
+      container [height: 1]
+        align [alignment: "center"]
+          text [foreground: "blue"] "Min: " min_temp

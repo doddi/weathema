@@ -1,3 +1,4 @@
+use std::time::Duration;
 use anathema::component::{Component, ComponentId, Elements, Emitter, List, State, Value};
 use anathema::default_widgets::{Canvas, CanvasAttribs};
 use anathema::geometry::LocalPos;
@@ -8,7 +9,7 @@ use anathema::runtime::RuntimeBuilder;
 struct GraphComponent;
 
 impl GraphComponent {
-    fn populate_graph(&mut self, canvas: &mut Canvas, point_width: u16, data_points: &Vec<u16>, max: &u16, mut style: &CanvasAttribs) {
+    fn populate_graph(&mut self, canvas: &mut Canvas, point_width: u16, data_points: &Vec<u16>, max: &u16, style: &CanvasAttribs) {
         for (pt_idx, value) in data_points.iter().enumerate() {
             let y = max - *value;
             for width_idx in 0..point_width {
