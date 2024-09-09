@@ -1,9 +1,1 @@
-let THEME = {
-  border_foreground: "blue",
-}
-
-vstack
-  @header
-  expand
-    @main
-  @footer
+@graphComponent {title: "test"}

@@ -46,22 +46,10 @@ impl Component for GraphComponent {
         _context: Context<'_, Self::State>,
     ) {
         let range1 = Self::find_range(&message.max_temp_points);
-        let range2 = Self::find_range(&message.min_temp_points);
 
         // Find the range of the data points
-        let min = if range1.0 > range2.0 {
-            range2.0
-        } else {
-            range1.0
-        };
-        let max = if range1.1 > range2.1 {
-            range1.1
-        } else {
-            range2.1
-        };
-
-        state.max_temp.set(max);
-        state.min_temp.set(min);
+        let min = range1.0;
+        let max = range1.1;
 
         let range = if max - min < 10 { 10 } else { max - min };
         state.height.set(range);
@@ -81,22 +69,12 @@ impl Component for GraphComponent {
             let canvas = el.to::<Canvas>();
             self.populate_graph(canvas, *point_width, &message.max_temp_points, &min, &max, &style);
         });
-
-        // Populate min temps in the forecast
-        let mut style = Style::new();
-        style.set_fg(Color::Blue);
-        elements.by_tag("canvas").first(|el, _| {
-            let canvas = el.to::<Canvas>();
-            self.populate_graph(canvas, *point_width, &message.min_temp_points, &min, &max, &style);
-        });
     }
 }
 
 #[derive(State)]
 struct GraphComponentState {
     title: Value<String>,
-    max_temp: Value<u16>,
-    min_temp: Value<u16>,
 
     point_width: Value<u16>,
 
@@ -111,12 +89,10 @@ impl GraphComponentState {
         let data_points = List::from_iter(vec![]);
         Self {
             title: Value::new("Graph".to_string()),
-            max_temp: Value::new(0),
-            min_temp: Value::new(0),
 
-            point_width: Value::new(2),
-            height: Value::new(70),
-            width: Value::new(70),
+            point_width: Value::new(3),
+            height: Value::new(12),
+            width: Value::new(12),
             data_points,
         }
     }
@@ -124,7 +100,6 @@ impl GraphComponentState {
 
 pub struct GraphComponentMessage {
     max_temp_points: Vec<u16>,
-    min_temp_points: Vec<u16>,
 }
 
 pub fn create_component(
@@ -144,13 +119,11 @@ pub(crate) fn update_component(
     emitter: &Emitter,
     id: ComponentId<GraphComponentMessage>,
     max_temp_points: Vec<u16>,
-    min_temp_points: Vec<u16>,
 ) {
     let _ = emitter.emit(
         id,
         GraphComponentMessage {
             max_temp_points,
-            min_temp_points,
         },
     );
 }

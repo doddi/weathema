@@ -1,5 +1,0 @@
-border [foreground: THEME.border_foreground, min_height: 1]
-  hstack
-    @spinner
-    spacer
-    text [foreground: "yellow"] "Written by doddi"

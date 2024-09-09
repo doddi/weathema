@@ -1,7 +1,0 @@
-  border [foreground: THEME.border_foreground]
-    hstack
-      @locationInput
-      spacer
-      text "Weathema"
-      spacer
-      text [foreground: "yellow"] "Created using Anathema"

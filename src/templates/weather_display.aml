@@ -1,8 +1,0 @@
-if is_loading == false
-  hstack [foreground: "white"]
-    border [foreground: THEME.border_foreground]
-      vstack [foreground: "white"]
-        @temperatureRange
-        @windDirection
-    @weatherImage
-    @graphComponent {point_width: 2, title: "Forecast Temperature"}

@@ -1,6 +1,0 @@
-if is_loading == true
-  hstack
-    spacer
-    align [alignment: "center"]
-      text value
-    spacer
