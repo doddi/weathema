@@ -26,12 +26,6 @@ impl GraphComponent {
             }
         }
     }
-
-    fn find_range(points: &[u16]) -> (u16, u16) {
-        let min = points.iter().min().unwrap();
-        let max = points.iter().max().unwrap();
-        (*min, *max)
-    }
 }
 
 impl Component for GraphComponent {
@@ -45,11 +39,9 @@ impl Component for GraphComponent {
         mut elements: Elements<'_, '_>,
         _context: Context<'_, Self::State>,
     ) {
-        let range1 = Self::find_range(&message.max_temp_points);
-
         // Find the range of the data points
-        let min = range1.0;
-        let max = range1.1;
+        let min = message.max_temp_points.iter().min().unwrap();
+        let max = message.max_temp_points.iter().max().unwrap();
 
         let range = if max - min < 10 { 10 } else { max - min };
         state.height.set(range);
@@ -91,8 +83,8 @@ impl GraphComponentState {
             title: Value::new("Graph".to_string()),
 
             point_width: Value::new(3),
-            height: Value::new(12),
-            width: Value::new(12),
+            height: Value::new(50),
+            width: Value::new(50),
             data_points,
         }
     }

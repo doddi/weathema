@@ -1,7 +1,7 @@
-border [width: width * 3 , foreground: THEME.border_foreground]
+border [width: width + 4]
   expand
     vstack [foreground: "white"]
       container [height: 1]
         align [alignment: "center"]
           text title
-      canvas [height: height * 3]
+      canvas [height: height]
