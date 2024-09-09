@@ -1,6 +1,6 @@
 use anathema::component::{Component, ComponentId, Elements, Emitter, State, Value};
 use anathema::prelude::{Context, TuiBackend};
-use anathema::runtime::RuntimeBuilder;
+use anathema::runtime::{GlobalEvents, RuntimeBuilder};
 
 struct WeatherDisplay;
 
@@ -31,13 +31,19 @@ impl Component for WeatherDisplay {
     type State = WeatherDisplayState;
     type Message = WeatherDisplayMessage;
 
-    fn message(&mut self, message: Self::Message, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>) {
+    fn message(
+        &mut self,
+        message: Self::Message,
+        state: &mut Self::State,
+        _elements: Elements<'_, '_>,
+        _context: Context<'_, Self::State>,
+    ) {
         state.is_loading.set(message.is_loading);
     }
 }
 
 pub fn create_component(
-    runtime: &mut RuntimeBuilder<TuiBackend>,
+    runtime: &mut RuntimeBuilder<TuiBackend, impl GlobalEvents>,
 ) -> ComponentId<WeatherDisplayMessage> {
     runtime
         .register_component(
@@ -49,6 +55,10 @@ pub fn create_component(
         .unwrap()
 }
 
-pub(crate) fn update_component(emitter: &Emitter, id: ComponentId<WeatherDisplayMessage>, is_loading: bool) {
+pub(crate) fn update_component(
+    emitter: &Emitter,
+    id: ComponentId<WeatherDisplayMessage>,
+    is_loading: bool,
+) {
     let _ = emitter.emit(id, WeatherDisplayMessage { is_loading });
 }

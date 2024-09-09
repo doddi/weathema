@@ -66,7 +66,7 @@ impl Component for WindDirectionComponent {
 }
 
 pub fn create_component(
-    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend>,
+    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend, impl GlobalEvents>,
 ) -> ComponentId<WindDirectionMessage> {
     runtime
         .register_component(

@@ -1,13 +1,12 @@
-use std::time::Duration;
 use anathema::component::{Component, ComponentId, Elements, Emitter, State, Value};
-use anathema::prelude::{Context, TuiBackend};
+use anathema::prelude::{Context, GlobalEvents, TuiBackend};
+use std::time::Duration;
 
 struct Spinner;
 
 impl Spinner {
     fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 }
 
@@ -15,31 +14,40 @@ impl Component for Spinner {
     type State = SpinnerState;
     type Message = SpinnerMessage;
 
-    fn tick(&mut self, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>, _dt: Duration) {
+    fn tick(
+        &mut self,
+        state: &mut Self::State,
+        _elements: Elements<'_, '_>,
+        _context: Context<'_, Self::State>,
+        _dt: Duration,
+    ) {
         if state.animating.to_bool() {
             let status = state.status.copy_value();
-            let result = if status == 3 {
-                0
-            }
-            else {
-                status +  1
-            };
+            let result = if status == 3 { 0 } else { status + 1 };
             state.status.set(result);
 
-            state.value.set(match result {
-                0 => '|',
-                1 => '/',
-                2 => '-',
-                3 => '\\',
-                _ => unreachable!(),
-            }.to_string());
-        }
-        else {
+            state.value.set(
+                match result {
+                    0 => '|',
+                    1 => '/',
+                    2 => '-',
+                    3 => '\\',
+                    _ => unreachable!(),
+                }
+                .to_string(),
+            );
+        } else {
             state.value.set(' '.to_string());
         }
     }
 
-    fn message(&mut self, message: Self::Message, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>) {
+    fn message(
+        &mut self,
+        message: Self::Message,
+        state: &mut Self::State,
+        _elements: Elements<'_, '_>,
+        _context: Context<'_, Self::State>,
+    ) {
         state.animating.set(message.animating);
         state.status.set(0);
     }
@@ -70,13 +78,11 @@ pub(crate) struct SpinnerMessage {
 
 impl SpinnerMessage {
     fn new(animating: bool) -> Self {
-        Self {
-            animating,
-        }
+        Self { animating }
     }
 }
 pub fn create_component(
-    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend>,
+    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend, impl GlobalEvents>,
 ) -> ComponentId<SpinnerMessage> {
     runtime
         .register_component(
@@ -91,12 +97,9 @@ pub fn create_component(
 pub fn update_component(
     emitter: &Emitter,
     component_id: ComponentId<SpinnerMessage>,
-    animating: bool
+    animating: bool,
 ) {
     emitter
-        .emit(
-            component_id,
-            SpinnerMessage::new(animating),
-        )
+        .emit(component_id, SpinnerMessage::new(animating))
         .unwrap();
 }

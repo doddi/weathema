@@ -1,5 +1,5 @@
 use anathema::component::{Component, ComponentId, Elements, Emitter, State, Value};
-use anathema::prelude::{Context, TuiBackend};
+use anathema::prelude::{Context, GlobalEvents, TuiBackend};
 use anathema::runtime::RuntimeBuilder;
 
 struct MainHolding;
@@ -14,7 +14,13 @@ impl Component for MainHolding {
     type State = MainHoldingState;
     type Message = MainHoldingMessage;
 
-    fn message(&mut self, message: Self::Message, state: &mut Self::State, _elements: Elements<'_, '_>, _context: Context<'_, Self::State>) {
+    fn message(
+        &mut self,
+        message: Self::Message,
+        state: &mut Self::State,
+        _elements: Elements<'_, '_>,
+        _context: Context<'_, Self::State>,
+    ) {
         state.is_loading.set(message.is_loading);
         state.value.set(message.value);
     }
@@ -41,7 +47,7 @@ pub struct MainHoldingMessage {
 }
 
 pub fn create_component(
-    runtime: &mut RuntimeBuilder<TuiBackend>,
+    runtime: &mut RuntimeBuilder<TuiBackend, impl GlobalEvents>,
 ) -> ComponentId<MainHoldingMessage> {
     runtime
         .register_component(
@@ -53,6 +59,11 @@ pub fn create_component(
         .unwrap()
 }
 
-pub(crate) fn update_component(emitter: &Emitter, id: ComponentId<MainHoldingMessage>, is_loading: bool, value: String) {
+pub(crate) fn update_component(
+    emitter: &Emitter,
+    id: ComponentId<MainHoldingMessage>,
+    is_loading: bool,
+    value: String,
+) {
     let _ = emitter.emit(id, MainHoldingMessage { is_loading, value });
 }

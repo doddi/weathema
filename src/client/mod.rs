@@ -50,9 +50,9 @@ impl WeatherAPI {
 }
 
 pub(crate) enum WeathemaComponentMessaging {
-    ForecastWaiting,
-    ForecastReceived(WeatherForecastResponse),
-    ForecastError(String),
+    Waiting,
+    Received(WeatherForecastResponse),
+    Error(String),
 }
 
 ////////////// Weather API //////////////

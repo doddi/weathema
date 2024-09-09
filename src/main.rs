@@ -4,12 +4,12 @@ mod components;
 use crate::client::{WeathemaComponentMessaging, WeatherAPI};
 use anathema::component::State;
 use anathema::prelude::*;
+use anathema::runtime::RuntimeBuilder;
 use anathema::state::Value;
 use clap::Parser;
 use std::fs::read_to_string;
 use std::sync::mpsc;
 use std::sync::mpsc::{Sender, TryRecvError};
-use anathema::runtime::RuntimeBuilder;
 
 #[derive(Parser)]
 struct Args {
@@ -57,7 +57,8 @@ async fn main() {
     let temperature_range_id = components::temperature_range::create_component(&mut runtime);
     let wind_direction_id = components::wind_direction::create_component(&mut runtime);
     let graph_component_id = components::graph_component::create_component(&mut runtime);
-    let _location_input_id = components::location_input::create_component(&mut runtime, tx_input, &location);
+    let _location_input_id =
+        components::location_input::create_component(&mut runtime, tx_input, &location);
 
     let (tx, rx) = mpsc::channel::<WeathemaComponentMessaging>();
 
@@ -69,17 +70,31 @@ async fn main() {
 
     components::spinner::update_component(&emitter, spinner_id, false);
     components::weather_display::update_component(&emitter, weather_display_id, true);
-    components::main_holding::update_component(&emitter, main_holding_id, true, "Enter location".to_string());
+    components::main_holding::update_component(
+        &emitter,
+        main_holding_id,
+        true,
+        "Enter location".to_string(),
+    );
 
     tokio::spawn(async move {
         while let Ok(weather_message) = rx.recv() {
             match weather_message {
-                WeathemaComponentMessaging::ForecastWaiting => {
+                WeathemaComponentMessaging::Waiting => {
                     components::spinner::update_component(&emitter, spinner_id, true);
-                    components::weather_display::update_component(&emitter, weather_display_id, true);
-                    components::main_holding::update_component(&emitter, main_holding_id, true, "Loading...".to_string());
+                    components::weather_display::update_component(
+                        &emitter,
+                        weather_display_id,
+                        true,
+                    );
+                    components::main_holding::update_component(
+                        &emitter,
+                        main_holding_id,
+                        true,
+                        "Loading...".to_string(),
+                    );
                 }
-                WeathemaComponentMessaging::ForecastReceived(weather_update) => {
+                WeathemaComponentMessaging::Received(weather_update) => {
                     components::temperature_range::update_component(
                         &emitter,
                         temperature_range_id,
@@ -96,25 +111,54 @@ async fn main() {
                     components::wind_direction::update_component(
                         &emitter,
                         wind_direction_id,
-                        weather_update.forecasts[0].summary.report.wind_direction.clone(),
+                        weather_update.forecasts[0]
+                            .summary
+                            .report
+                            .wind_direction
+                            .clone(),
                     );
-                    components::weather_display::update_component(&emitter, weather_display_id, false);
+                    components::weather_display::update_component(
+                        &emitter,
+                        weather_display_id,
+                        false,
+                    );
                     components::spinner::update_component(&emitter, spinner_id, false);
-                    components::main_holding::update_component(&emitter, main_holding_id, false, "Loaded".to_string());
+                    components::main_holding::update_component(
+                        &emitter,
+                        main_holding_id,
+                        false,
+                        "Loaded".to_string(),
+                    );
                     components::graph_component::update_component(
                         &emitter,
                         graph_component_id,
-                        weather_update.forecasts.iter().map(|forecast| forecast.summary.report.max_temp_c as u16).collect(),
-                        weather_update.forecasts.iter().map(|forecast| forecast.summary.report.min_temp_c as u16).collect(),
+                        weather_update
+                            .forecasts
+                            .iter()
+                            .map(|forecast| forecast.summary.report.max_temp_c as u16)
+                            .collect(),
+                        weather_update
+                            .forecasts
+                            .iter()
+                            .map(|forecast| forecast.summary.report.min_temp_c as u16)
+                            .collect(),
                     );
                 }
-                WeathemaComponentMessaging::ForecastError(reason) => {
+                WeathemaComponentMessaging::Error(reason) => {
                     components::spinner::update_component(&emitter, spinner_id, false);
-                    components::weather_display::update_component(&emitter, weather_display_id, true);
-                    components::main_holding::update_component(&emitter, main_holding_id, true, reason);
+                    components::weather_display::update_component(
+                        &emitter,
+                        weather_display_id,
+                        true,
+                    );
+                    components::main_holding::update_component(
+                        &emitter,
+                        main_holding_id,
+                        true,
+                        reason,
+                    );
                 }
             }
-
         }
     });
 
@@ -122,80 +166,75 @@ async fn main() {
     runtime.run();
 }
 
-fn register_static_component(runtime: &mut RuntimeBuilder<TuiBackend>) {
+fn register_static_component(runtime: &mut RuntimeBuilder<TuiBackend, impl GlobalEvents>) {
     runtime
-        .register_component(
-            "header",
-            "src/templates/header.aml",
-            (),
-            (),
-        )
+        .register_component("header", "src/templates/header.aml", (), ())
         .unwrap();
 
     runtime
-        .register_component(
-            "main",
-            "src/templates/main.aml",
-            (),
-            (),
-        )
+        .register_component("main", "src/templates/main.aml", (), ())
         .unwrap();
 
     runtime
-        .register_component(
-            "footer",
-            "src/templates/footer.aml",
-            (),
-            (),
-        )
+        .register_component("footer", "src/templates/footer.aml", (), ())
         .unwrap();
 }
 
 async fn poll_backend_service(
     tx: Sender<WeathemaComponentMessaging>,
     rx: mpsc::Receiver<String>,
-    initial_location: &Option<String>) {
-
+    initial_location: &Option<String>,
+) {
     let weather_api = WeatherAPI::new();
 
     if let Some(location) = initial_location {
-        if !get_weather(&tx, &weather_api, location).await { return; }
+        if !get_weather(&tx, &weather_api, location).await {
+            return;
+        }
     }
 
     loop {
         match rx.try_recv() {
             Ok(entered_location) => {
-                if !get_weather(&tx, &weather_api, &entered_location).await { return; }
+                if !get_weather(&tx, &weather_api, &entered_location).await {
+                    return;
+                }
             }
-            Err(err) => {
-                match err {
-                    TryRecvError::Empty => {
-                        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-                    }
-                    TryRecvError::Disconnected => {
-                        eprintln!("Disconnected Error: {}", err);
-                        return;
-                    }
+            Err(err) => match err {
+                TryRecvError::Empty => {
+                    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                }
+                TryRecvError::Disconnected => {
+                    eprintln!("Disconnected Error: {}", err);
+                    return;
                 }
             },
         }
     }
 }
 
-async fn get_weather(tx: &Sender<WeathemaComponentMessaging>, weather_api: &WeatherAPI, entered_location: &str) -> bool {
-    tx.send(WeathemaComponentMessaging::ForecastWaiting).unwrap();
+async fn get_weather(
+    tx: &Sender<WeathemaComponentMessaging>,
+    weather_api: &WeatherAPI,
+    entered_location: &str,
+) -> bool {
+    tx.send(WeathemaComponentMessaging::Waiting).unwrap();
 
     match weather_api.get_weather(entered_location).await {
         Ok(information) => {
             // Send the weather update to the main thread
-            if tx.send(WeathemaComponentMessaging::ForecastReceived(information)).is_err() {
+            if tx
+                .send(WeathemaComponentMessaging::Received(information))
+                .is_err()
+            {
                 println!("Receiver dropped");
                 return false;
             }
         }
         Err(err) => {
-            tx.send(WeathemaComponentMessaging::ForecastError(err.to_string())).unwrap();
-        },
+            tx.send(WeathemaComponentMessaging::Error(err.to_string()))
+                .unwrap();
+        }
     }
     true
 }

@@ -1,6 +1,6 @@
 use crate::WeatherImageState;
 use anathema::component::{Component, ComponentId, Elements, Emitter};
-use anathema::prelude::{Context, TuiBackend};
+use anathema::prelude::{Context, GlobalEvents, TuiBackend};
 use std::fs::read_to_string;
 
 struct WeatherImage;
@@ -63,7 +63,7 @@ enum WeatherType {
 }
 
 pub fn create_component(
-    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend>,
+    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend, impl GlobalEvents>,
 ) -> ComponentId<WeatherImageMessage> {
     runtime
         .register_component(

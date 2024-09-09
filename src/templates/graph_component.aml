@@ -1,4 +1,4 @@
-border [width: width + 2, foreground: THEME.border_foreground]
+border [width: width * 3 , foreground: THEME.border_foreground]
   expand
     vstack [foreground: "white"]
       container [height: 1]
@@ -7,7 +7,7 @@ border [width: width + 2, foreground: THEME.border_foreground]
       container [height: 1]
         align [alignment: "center"]
           text [foreground: "red"] "Max: " max_temp
-      canvas [height: height]
+      canvas [height: height * 3]
       container [height: 1]
         align [alignment: "center"]
           text [foreground: "blue"] "Min: " min_temp

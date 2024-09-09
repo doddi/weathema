@@ -55,7 +55,7 @@ impl Component for TemperatureRange {
 }
 
 pub fn create_component(
-    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend>,
+    runtime: &mut anathema::runtime::RuntimeBuilder<TuiBackend, impl GlobalEvents>,
 ) -> ComponentId<TemperatureRangeMessage> {
     runtime
         .register_component(
