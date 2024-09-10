@@ -1,14 +1,15 @@
 use anathema::backend::tui::Style;
 use anathema::component::{Color, Component, ComponentId, Elements, Emitter, List, State, Value};
-use anathema::default_widgets::{Canvas};
+use anathema::default_widgets::Canvas;
 use anathema::geometry::LocalPos;
 use anathema::prelude::*;
 use anathema::runtime::RuntimeBuilder;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct GraphComponent;
 
 impl GraphComponent {
+    #[tracing::instrument]
     fn populate_graph(
         &mut self,
         canvas: &mut Canvas,
@@ -19,11 +20,24 @@ impl GraphComponent {
         style: &Style,
     ) {
         for (pt_idx, value) in data_points.iter().enumerate() {
+            // let y = (max - min) - (*value - min);
             let y = (max - min) - (*value - min);
-            for width_idx in 0..point_width {
-                let x = (pt_idx as u16 * point_width) + width_idx;
-                canvas.put('*', *style, LocalPos::new(x, y));
-            }
+            self.add_to_canvas(point_width, pt_idx, y, canvas, style);
+        }
+    }
+
+    #[tracing::instrument]
+    fn add_to_canvas(
+        &self,
+        point_width: u16,
+        pt_idx: usize,
+        y: u16,
+        canvas: &mut Canvas,
+        style: &Style,
+    ) {
+        for width_idx in 0..point_width {
+            let x = (pt_idx as u16 * point_width) + width_idx;
+            canvas.put('*', *style, LocalPos::new(x, y));
         }
     }
 }
@@ -59,12 +73,19 @@ impl Component for GraphComponent {
         style.set_fg(Color::Red);
         elements.by_tag("canvas").first(|el, _| {
             let canvas = el.to::<Canvas>();
-            self.populate_graph(canvas, *point_width, &message.max_temp_points, &min, &max, &style);
+            self.populate_graph(
+                canvas,
+                *point_width,
+                &message.max_temp_points,
+                min,
+                max,
+                &style,
+            );
         });
     }
 }
 
-#[derive(State)]
+#[derive(Debug, State)]
 struct GraphComponentState {
     title: Value<String>,
 
@@ -83,8 +104,8 @@ impl GraphComponentState {
             title: Value::new("Graph".to_string()),
 
             point_width: Value::new(3),
-            height: Value::new(50),
-            width: Value::new(50),
+            height: Value::new(10),
+            width: Value::new(10),
             data_points,
         }
     }
@@ -112,10 +133,5 @@ pub(crate) fn update_component(
     id: ComponentId<GraphComponentMessage>,
     max_temp_points: Vec<u16>,
 ) {
-    let _ = emitter.emit(
-        id,
-        GraphComponentMessage {
-            max_temp_points,
-        },
-    );
+    let _ = emitter.emit(id, GraphComponentMessage { max_temp_points });
 }
